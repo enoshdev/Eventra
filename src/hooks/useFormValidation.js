@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 export const useFormValidation = (initialState, validationRules, options = {}) => {
   const { debounceMs = 300, validateOnBlur = false } = options;
   const timeoutRef = useRef(null);
-  
+  const initialStateRef = useRef(initialState);
   const [values, setValues] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -97,11 +97,11 @@ export const useFormValidation = (initialState, validationRules, options = {}) =
 
   // Reset form
   const resetForm = useCallback(() => {
-    setValues(initialState);
+    setValues(initialStateRef.current);
     setErrors({});
     setTouched({});
     setIsFormValid(false);
-  }, [initialState]);
+  }, []);
 
   return {
     values,
