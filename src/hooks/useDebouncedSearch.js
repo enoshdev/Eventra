@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-/**
- * Custom hook for debounced search/filter queries.
- * Prevents excessive re-renders and API calls by debouncing input changes.
- * 
- * @param {string} initialValue - Initial search value
- * @param {number} delay - Debounce delay in milliseconds (default: 300ms)
- * @returns {{ searchTerm, debouncedTerm, setSearchTerm, isDebouncing, clear }}
- */
 export function useDebouncedSearch(initialValue = '', delay = 300) {
   const [searchTerm, setSearchTerm] = useState(initialValue);
   const [debouncedTerm, setDebouncedTerm] = useState(initialValue);
   const [isDebouncing, setIsDebouncing] = useState(false);
   const timerRef = useRef(null);
+  
+  // FIX: Track mount status
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (searchTerm === debouncedTerm) {
@@ -22,14 +24,16 @@ export function useDebouncedSearch(initialValue = '', delay = 300) {
 
     setIsDebouncing(true);
 
-    // Clear any existing timeout to reset the debounce timer
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
 
     timerRef.current = setTimeout(() => {
-      setDebouncedTerm(searchTerm);
-      setIsDebouncing(false);
+      // FIX: Only update state if component is still mounted
+      if (isMounted.current) {
+        setDebouncedTerm(searchTerm);
+        setIsDebouncing(false);
+      }
     }, delay);
 
     return () => {
