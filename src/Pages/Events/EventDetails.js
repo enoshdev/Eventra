@@ -38,6 +38,7 @@ const EventDetails = () => {
   const { user } = useAuth();
   const isOrganizer = user?.roles?.includes(ROLES.ORGANIZER) || user?.roles?.includes(ROLES.ADMIN);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false); // NEW: Print UX state
 
   const { isRegistered } = useMyEvents();
   const foundEvent = mockEvents.find((item) => String(item.id) === eventId);
@@ -68,6 +69,15 @@ const EventDetails = () => {
     }
   }, [event]);
 
+  // NEW: Print UX handler
+  const handlePrint = () => {
+    setIsPrinting(true);
+    setTimeout(() => {
+      window.print();
+      setIsPrinting(false);
+    }, 500);
+  };
+
   if (!event) {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 py-24">
@@ -83,19 +93,6 @@ const EventDetails = () => {
       </div>
     );
   }
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      toast.success("Event link copied!");
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch (err) {
-      toast.error("Failed to copy link");
-    }
-  };
 
   const canSetReminder = isEventBookmarked(event.id) || isRegistered(event.id);
   const isRegistrationClosed = isEventRegistrationClosed(event);
@@ -142,12 +139,14 @@ const EventDetails = () => {
 
             <CopyLinkButton />
 
+            {/* UPDATED: Print Button with Loading State */}
             <button
-              onClick={() => window.print()}
+              onClick={handlePrint}
+              disabled={isPrinting}
               className="print-hide inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50 transition dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
               aria-label="Print or save as PDF"
             >
-              🖨️ Print / Save as PDF
+              {isPrinting ? "Preparing..." : "🖨️ Print / Save as PDF"}
             </button>
 
             {isOrganizer && (
